@@ -1,15 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { useLanguage } from '../contexts/LanguageContext.jsx';
-import { API_ENDPOINTS } from '../config/api';
-import '../styles/Marketplace.css';
+import React, { useState, useEffect } from "react";
+import { useLanguage } from "../contexts/LanguageContext.jsx";
+import { API_ENDPOINTS } from "../config/api";
+import "../styles/Marketplace.css";
 
 const Marketplace = () => {
   const { t } = useLanguage();
   const [marketplaceData, setMarketplaceData] = useState(null);
-  const [userCredits, setUserCredits] = useState(null);
+  const [userCredits, setUserCredits] = useState({
+    ecoCredits: 0,
+    carbonCredits: 0,
+  });
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState('');
-  const [messageType, setMessageType] = useState('');
+  const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState("");
 
   useEffect(() => {
     fetchMarketplaceData();
@@ -20,12 +23,12 @@ const Marketplace = () => {
     try {
       const response = await fetch(API_ENDPOINTS.MARKETPLACE);
       const data = await response.json();
-      
+
       if (data.success) {
         setMarketplaceData(data.data);
       }
     } catch (error) {
-      console.error('Error fetching marketplace data:', error);
+      console.error("Error fetching marketplace data:", error);
     } finally {
       setLoading(false);
     }
@@ -35,52 +38,52 @@ const Marketplace = () => {
     try {
       const response = await fetch(API_ENDPOINTS.USER_CREDITS);
       const data = await response.json();
-      
+
       if (data.success) {
         setUserCredits({
           ecoCredits: data.data.user.ecoCredits,
-          carbonCredits: data.data.user.carbonCredits
+          carbonCredits: data.data.user.carbonCredits,
         });
       }
     } catch (error) {
-      console.error('Error fetching user credits:', error);
+      console.error("Error fetching user credits:", error);
     }
   };
 
   const handleRedeem = async (offerId, type) => {
-    setMessage('');
-    setMessageType('');
+    setMessage("");
+    setMessageType("");
 
     try {
       const response = await fetch(API_ENDPOINTS.MARKETPLACE_REDEEM, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          userId: 'demo-user',
+          userId: "demo-user",
           offerId,
-          type
-        })
+          type,
+        }),
       });
 
       const data = await response.json();
 
       if (data.success) {
-        setMessage('Offer redeemed successfully!');
-        setMessageType('success');
+        setMessage("Offer redeemed successfully!");
+        setMessageType("success");
         setUserCredits({
           ecoCredits: data.data.remainingEcoCredits,
-          carbonCredits: data.data.remainingCarbonCredits
+          carbonCredits: data.data.remainingCarbonCredits,
         });
       } else {
-        setMessage(data.message || 'Failed to redeem offer');
-        setMessageType('error');
+        setMessage(data.message || "Failed to redeem offer");
+        setMessageType("error");
       }
     } catch (error) {
-      console.error('Redemption error:', error);
-      setMessage('Network error. Please try again.');
-      setMessageType('error');
+      console.error("Redemption error:", error);
+      setMessage("Network error. Please try again.");
+      setMessageType("error");
     }
   };
 
@@ -112,7 +115,7 @@ const Marketplace = () => {
     <div className="marketplace">
       <div className="container">
         <div className="marketplace-header">
-          <h1>{t('marketplace.title')}</h1>
+          <h1>{t("marketplace.title")}</h1>
           <div className="credits-display">
             <div className="credit-balance eco">
               <span className="credit-icon">🌱</span>
@@ -127,15 +130,11 @@ const Marketplace = () => {
           </div>
         </div>
 
-        {message && (
-          <div className={`message ${messageType}`}>
-            {message}
-          </div>
-        )}
+        {message && <div className={`message ${messageType}`}>{message}</div>}
 
         <div className="marketplace-content">
           <section className="offers-section">
-            <h2>{t('marketplace.offers')}</h2>
+            <h2>{t("marketplace.offers")}</h2>
             <div className="offers-grid">
               {marketplaceData?.offers?.map((offer) => (
                 <div key={offer.id} className="offer-card">
@@ -146,17 +145,25 @@ const Marketplace = () => {
                     <div className="offer-category">{offer.category}</div>
                     <h3 className="offer-title">{offer.title}</h3>
                     <p className="offer-description">{offer.description}</p>
-                    <div className="offer-partner">Partner: {offer.partner}</div>
+                    <div className="offer-partner">
+                      Partner: {offer.partner}
+                    </div>
                     <div className="offer-cost">
-                      <span className="cost-amount">{offer.ecoCreditsRequired}</span>
+                      <span className="cost-amount">
+                        {offer.ecoCreditsRequired}
+                      </span>
                       <span className="cost-label">Eco Credits</span>
                     </div>
                     <button
-                      className={`btn ${userCredits.ecoCredits >= offer.ecoCreditsRequired ? 'btn-primary' : 'btn-disabled'}`}
-                      onClick={() => handleRedeem(offer.id, 'marketplace')}
-                      disabled={userCredits.ecoCredits < offer.ecoCreditsRequired}
+                      className={`btn ${userCredits.ecoCredits >= offer.ecoCreditsRequired ? "btn-primary" : "btn-disabled"}`}
+                      onClick={() => handleRedeem(offer.id, "marketplace")}
+                      disabled={
+                        userCredits.ecoCredits < offer.ecoCreditsRequired
+                      }
                     >
-                      {userCredits.ecoCredits >= offer.ecoCreditsRequired ? t('marketplace.redeem') : 'Insufficient Credits'}
+                      {userCredits.ecoCredits >= offer.ecoCreditsRequired
+                        ? t("marketplace.redeem")
+                        : "Insufficient Credits"}
                     </button>
                   </div>
                 </div>
@@ -165,7 +172,7 @@ const Marketplace = () => {
           </section>
 
           <section className="donations-section">
-            <h2>{t('marketplace.donations')}</h2>
+            <h2>{t("marketplace.donations")}</h2>
             <div className="donations-grid">
               {marketplaceData?.donations?.map((donation) => (
                 <div key={donation.id} className="donation-card">
@@ -174,27 +181,39 @@ const Marketplace = () => {
                     <h3 className="donation-title">{donation.title}</h3>
                   </div>
                   <p className="donation-description">{donation.description}</p>
-                  <div className="donation-organization">Organization: {donation.organization}</div>
+                  <div className="donation-organization">
+                    Organization: {donation.organization}
+                  </div>
                   <div className="donation-costs">
                     {donation.ecoCreditsRequired > 0 && (
                       <div className="cost-item">
-                        <span className="cost-amount">{donation.ecoCreditsRequired}</span>
+                        <span className="cost-amount">
+                          {donation.ecoCreditsRequired}
+                        </span>
                         <span className="cost-label">Eco Credits</span>
                       </div>
                     )}
                     {donation.carbonCreditsRequired > 0 && (
                       <div className="cost-item">
-                        <span className="cost-amount">{donation.carbonCreditsRequired}</span>
+                        <span className="cost-amount">
+                          {donation.carbonCreditsRequired}
+                        </span>
                         <span className="cost-label">Carbon Credits</span>
                       </div>
                     )}
                   </div>
                   <button
-                    className={`btn ${(userCredits.ecoCredits >= donation.ecoCreditsRequired && userCredits.carbonCredits >= donation.carbonCreditsRequired) ? 'btn-primary' : 'btn-disabled'}`}
-                    onClick={() => handleRedeem(donation.id, 'donation')}
-                    disabled={userCredits.ecoCredits < donation.ecoCreditsRequired || userCredits.carbonCredits < donation.carbonCreditsRequired}
+                    className={`btn ${userCredits.ecoCredits >= donation.ecoCreditsRequired && userCredits.carbonCredits >= donation.carbonCreditsRequired ? "btn-primary" : "btn-disabled"}`}
+                    onClick={() => handleRedeem(donation.id, "donation")}
+                    disabled={
+                      userCredits.ecoCredits < donation.ecoCreditsRequired ||
+                      userCredits.carbonCredits < donation.carbonCreditsRequired
+                    }
                   >
-                    {(userCredits.ecoCredits >= donation.ecoCreditsRequired && userCredits.carbonCredits >= donation.carbonCreditsRequired) ? 'Donate' : 'Insufficient Credits'}
+                    {userCredits.ecoCredits >= donation.ecoCreditsRequired &&
+                    userCredits.carbonCredits >= donation.carbonCreditsRequired
+                      ? "Donate"
+                      : "Insufficient Credits"}
                   </button>
                 </div>
               ))}
