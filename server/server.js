@@ -1,52 +1,55 @@
-const express = require('express');
-const cors = require('cors');
-const path = require('path');
-const fs = require('fs');
-require('dotenv').config();
+const express = require("express");
+const cors = require("cors");
+const path = require("path");
+const fs = require("fs");
+require("dotenv").config();
 
-const connectDB = require('../config/database');
+const connectDB = require("../config/database");
 
-const depositRoutes = require('./routes/deposit');
-const creditsRoutes = require('./routes/credits');
-const marketplaceRoutes = require('./routes/marketplace');
-const impactRoutes = require('./routes/impact');
+const depositRoutes = require("./routes/deposit");
+const creditsRoutes = require("./routes/credits");
+const marketplaceRoutes = require("./routes/marketplace");
+const impactRoutes = require("./routes/impact");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Temporarily disable database connection for production testing
-// connectDB().catch(err => {
-//   console.log('Database connection failed, running with mock data:', err.message);
-// });
+// Connect to MongoDB
+connectDB().catch((err) => {
+  console.log(
+    "Database connection failed, running with mock data:",
+    err.message,
+  );
+});
 
-console.log('Running in mock data mode - database connection disabled');
-
-const uploadsDir = path.join(__dirname, '../uploads');
+const uploadsDir = path.join(__dirname, "../uploads");
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir);
 }
 
-app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://ewaste-app-three.vercel.app', 'https://ewaste-app-three.vercel.app/']  // Your Vercel frontend
-    : ['http://localhost:3000'],
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL
+      ? process.env.FRONTEND_URL.split(",")
+      : ["http://localhost:3000"],
+    credentials: true,
+  }),
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
-app.use('/api/deposit', depositRoutes);
-app.use('/api/credits', creditsRoutes);
-app.use('/api/marketplace', marketplaceRoutes);
-app.use('/api/impact', impactRoutes);
+app.use("/api/deposit", depositRoutes);
+app.use("/api/credits", creditsRoutes);
+app.use("/api/marketplace", marketplaceRoutes);
+app.use("/api/impact", impactRoutes);
 
-app.get('/api/health', (req, res) => {
-  res.json({ success: true, message: 'Server is running' });
+app.get("/api/health", (req, res) => {
+  res.json({ success: true, message: "Server is running" });
 });
 
-app.get('/api/placeholder/:width/:height', (req, res) => {
+app.get("/api/placeholder/:width/:height", (req, res) => {
   const { width, height } = req.params;
   const svg = `
     <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
@@ -56,16 +59,16 @@ app.get('/api/placeholder/:width/:height', (req, res) => {
       </text>
     </svg>
   `;
-  res.setHeader('Content-Type', 'image/svg+xml');
+  res.setHeader("Content-Type", "image/svg+xml");
   res.send(svg.trim());
 });
 
 // Add root route for testing
-app.get('/', (req, res) => {
+app.get("/", (req, res) => {
   res.json({
     success: true,
-    message: 'E-Waste Recycling API is running!',
-    status: 'healthy'
+    message: "E-Waste Recycling API is running!",
+    status: "healthy",
   });
 });
 
@@ -73,14 +76,14 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({
     success: false,
-    message: 'Something went wrong!'
+    message: "Something went wrong!",
   });
 });
 
-app.use('*', (req, res) => {
+app.use("*", (req, res) => {
   res.status(404).json({
     success: false,
-    message: 'Route not found'
+    message: "Route not found",
   });
 });
 
